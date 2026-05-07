@@ -574,13 +574,14 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => removePreference(bucket.startIso)}
+                        aria-label={`Remove ${formatTime(bucket.startIso)} from your usual times`}
                         title="Remove from your usual times"
-                        className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground/80 hover:text-foreground transition-colors"
+                        className="-my-1 -mr-1 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] uppercase tracking-wider text-muted-foreground/80 hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       >
                         <span>your usual</span>
                         <span
-                          aria-hidden
-                          className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-muted-foreground/30 hover:border-foreground hover:bg-muted leading-none"
+                          aria-hidden="true"
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-muted-foreground/30 leading-none"
                         >
                           ×
                         </span>
