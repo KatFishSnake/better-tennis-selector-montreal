@@ -133,10 +133,10 @@ export default function Home() {
       sortable: { isOrderAsc: true, column: "facility.name" },
     };
     if (slot) {
-      // IC3's textbox filter — narrow to the exact court.
-      // Trailing comma ensures "#3" doesn't also match "#30", "#31", etc.
-      const m = slot.facility.name.match(/#\s*(\d+),/);
-      if (m) param.search = `#${m[1]},`;
+      // Use the full court name as the IC3 textbox filter — uniquely
+      // identifies the court, robust to inconsistent naming (some
+      // courts have "#N", others just "N").
+      param.search = slot.facility.name;
     }
     return `https://loisirs.montreal.ca/IC3/#/U6510/search/?searchParam=${encodeURIComponent(
       JSON.stringify(param),
@@ -246,7 +246,8 @@ export default function Home() {
 
   function shortCourtName(name: string): string {
     // "Terrain de tennis #11, La Fontaine" → "#11"
-    const m = name.match(/#\s*(\d+)/);
+    // "Terrain de tennis 14, La Fontaine"  → "#14"  (city data is inconsistent)
+    const m = name.match(/tennis\s*#?\s*(\d+)/i);
     return m ? `#${m[1]}` : name;
   }
 
