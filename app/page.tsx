@@ -407,13 +407,9 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5">
-          <div className="grid gap-2">
-            <Label id="day-label">Day</Label>
-            <div
-              role="group"
-              aria-labelledby="day-label"
-              className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap"
-            >
+          <fieldset className="grid gap-2 border-0 p-0 m-0 min-w-0">
+            <legend className="text-sm font-medium leading-none mb-2">Day</legend>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               {dayButtons.map((n) => (
                 <Button
                   key={n}
@@ -426,7 +422,7 @@ export default function Home() {
                 </Button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="grid gap-2">
