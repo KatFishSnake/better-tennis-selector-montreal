@@ -538,8 +538,45 @@ export default function Home() {
 
           {byTime.length === 0 && (
             <Card>
-              <CardContent className="p-6 text-center text-muted-foreground">
-                No slots found for this combination.
+              <CardContent className="p-6 flex flex-col items-center gap-3 text-center">
+                <p className="text-sm font-medium">No slots match this combination.</p>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Try a different day, switch sport to{" "}
+                  <span className="font-medium text-foreground">Tennis (all)</span>, or clear the
+                  time filter — then run the search again.
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 mt-1">
+                  {timeFilter !== "all" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTimeFilter("all")}
+                    >
+                      Clear time filter
+                    </Button>
+                  )}
+                  {dayOffset !== 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDayOffset(1)}
+                    >
+                      Try tomorrow
+                    </Button>
+                  )}
+                  {sportId !== "tennis-all" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSportId("tennis-all")}
+                    >
+                      Try Tennis (all)
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
