@@ -8,7 +8,7 @@ const figtree = Figtree({
   display: "swap",
 });
 
-const SITE_URL = "https://fer-tennis-booking.vercel.app";
+const SITE_URL = "https://tennismtl.com";
 const TITLE = "Better Tennis Booking · Montreal";
 const DESCRIPTION =
   "Find open tennis courts in Montreal faster than loisirs.montreal.ca. Search by day, park, and time — one click jumps you straight to the City booking page.";

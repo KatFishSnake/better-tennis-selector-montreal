@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: "https://fer-tennis-booking.vercel.app/",
+      url: "https://tennismtl.com/",
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,

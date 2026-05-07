@@ -589,7 +589,7 @@ export default function Home() {
           </a>{" "}
           ·{" "}
           <a
-            href="https://github.com/KatFishSnake/better-tennis-selector-montreal"
+            href="https://github.com/KatFishSnake/tennismtl.com"
             target="_blank"
             rel="noreferrer"
             className="hover:text-foreground underline-offset-4 hover:underline"
