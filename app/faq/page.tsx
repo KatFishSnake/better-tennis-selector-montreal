@@ -10,6 +10,10 @@ export const metadata: Metadata = {
 
 const QA: { q: string; a: string }[] = [
   {
+    q: "Why does this site exist?",
+    a: "Because loisirs.montreal.ca is slow, breaks often, and is genuinely painful to use. When you call 311 to make a reservation, the operator just sends you back to the same broken site. Tennis MTL is a thin, fast layer on top of the City's public data so booking takes seconds instead of minutes — built by a frustrated player after watching their partner give up on the City's UX one too many times.",
+  },
+  {
     q: "When does the Montreal tennis booking window open?",
     a: "Bookings on loisirs.montreal.ca open exactly 2 days in advance. Slots become reservable 48 hours before play time and fill quickly during peak evening hours (roughly 5–9 PM in summer).",
   },
@@ -83,6 +87,37 @@ export default function FaqPage() {
           </div>
         ))}
       </div>
+
+      <aside className="mt-12 rounded-xl border border-border bg-muted/40 p-5 text-sm">
+        <h2 className="font-semibold text-foreground mb-2">
+          Do you know who builds loisirs.montreal.ca?
+        </h2>
+        <p className="text-muted-foreground leading-relaxed">
+          If you work at the City of Montreal or know someone on the team behind loisirs.montreal.ca
+          / IC3, please put them in touch. With official API access this site could be much better —
+          proper auth, real-time availability, server-side reservations, push notifications when a
+          favourite slot opens up. Right now Tennis MTL is reverse-engineered against the public
+          endpoints; that&apos;s fragile and slow. Happy to collaborate on a better experience for
+          every Montrealer who plays.
+        </p>
+        <p className="mt-3">
+          <a
+            href="mailto:hello@heyandre.so?subject=Tennis%20MTL%20%C2%B7%20Loisirs%20Montr%C3%A9al"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            hello@heyandre.so
+          </a>
+          <span className="text-muted-foreground"> · </span>
+          <a
+            href="https://heyandre.so"
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+          >
+            heyandre.so
+          </a>
+        </p>
+      </aside>
 
       <p className="mt-12 text-xs text-muted-foreground">
         <Link href="/" className="underline-offset-4 hover:underline hover:text-foreground">

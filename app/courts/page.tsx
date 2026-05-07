@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { COURT_NOTES } from "@/data/court-notes";
 import { IC3_BASE, IC3_HEADERS, type InitResponse, type Site } from "@/lib/ic3";
 
 export const revalidate = 86400;
@@ -11,27 +12,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://tennismtl.com/courts" },
 };
 
+const NOTES_EDIT_URL =
+  "https://github.com/KatFishSnake/tennismtl.com/edit/main/data/court-notes.ts";
+
 const FALLBACK_SITES: Site[] = [
-  { id: 1734, name: "Parc La Fontaine" },
-  { id: 1, name: "Parc Jeanne-Mance" },
-  { id: 2, name: "Stade IGA — Parc Jarry" },
+  { id: 1734, name: "Parc La Fontaine, terrains sportifs" },
+  { id: 1726, name: "Parc Jeanne-Mance, terrains sportifs" },
+  { id: 813, name: "Complexe sportif Claude-Robillard" },
 ];
-
-const VENUE_NOTES: Record<string, string> = {
-  "Parc La Fontaine":
-    "One of the largest outdoor concentrations in Montreal. Mostly hard courts; lit for evening play.",
-  "Parc Jeanne-Mance":
-    "Outdoor courts at the foot of Mont-Royal. Heavy use during summer evenings — book early.",
-  "Stade IGA":
-    "Home of the National Bank Open. Indoor and outdoor courts; the only major bookable indoor public option in the city.",
-  "Parc Jarry": "Adjacent to Stade IGA. Outdoor courts with light evening traffic.",
-  "Parc Sir-Wilfrid-Laurier": "Plateau-Mont-Royal outdoor courts; popular with locals.",
-};
-
-function noteFor(name: string): string | null {
-  const key = Object.keys(VENUE_NOTES).find((k) => name.toLowerCase().includes(k.toLowerCase()));
-  return key ? (VENUE_NOTES[key] ?? null) : null;
-}
 
 async function loadSites(): Promise<Site[]> {
   try {
@@ -50,6 +38,7 @@ async function loadSites(): Promise<Site[]> {
 export default async function CourtsPage() {
   const rawSites = await loadSites();
   const sites = [...rawSites].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const notedCount = sites.filter((s) => COURT_NOTES[s.id]).length;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:py-16 w-full">
@@ -59,11 +48,24 @@ export default async function CourtsPage() {
       <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] mb-3">
         Montreal tennis courts on loisirs.montreal.ca
       </h1>
-      <p className="text-sm text-muted-foreground mb-10 max-w-xl leading-relaxed">
+      <p className="text-sm text-muted-foreground mb-6 max-w-xl leading-relaxed">
         Every park and facility that publishes bookable tennis or pickleball courts through the City
         of Montreal&apos;s public reservation system. The list is pulled directly from the
         City&apos;s API and refreshed daily. Click any venue to jump to live availability.
       </p>
+
+      <div className="mb-8 rounded-lg border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground leading-relaxed">
+        Notes are community-curated. {notedCount} of {sites.length} venues have one so far —{" "}
+        <a
+          href={NOTES_EDIT_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-foreground underline-offset-4 underline hover:no-underline"
+        >
+          add or improve a note on GitHub ↗
+        </a>
+        . Court counts, surface, lighting, and borough info all welcome.
+      </div>
 
       <div className="rounded-xl border border-border overflow-hidden">
         <table className="w-full text-sm">
@@ -76,14 +78,36 @@ export default async function CourtsPage() {
           </thead>
           <tbody>
             {sites.map((site, i) => {
-              const note = noteFor(site.name);
+              const note = COURT_NOTES[site.id];
               return (
                 <tr key={site.id} className={i > 0 ? "border-t border-border" : ""}>
                   <td className="px-4 py-3 align-top">
                     <span className="font-medium text-foreground">{site.name}</span>
                   </td>
                   <td className="px-4 py-3 align-top hidden sm:table-cell text-muted-foreground">
-                    {note ?? "—"}
+                    {note ? (
+                      <span>
+                        {note}{" "}
+                        <a
+                          href={NOTES_EDIT_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Edit this note on GitHub"
+                          className="text-muted-foreground/70 hover:text-foreground underline-offset-4 hover:underline whitespace-nowrap"
+                        >
+                          ✎
+                        </a>
+                      </span>
+                    ) : (
+                      <a
+                        href={NOTES_EDIT_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-muted-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
+                      >
+                        Suggest a note ↗
+                      </a>
+                    )}
                   </td>
                   <td className="px-4 py-3 align-top text-right">
                     <Link
@@ -110,7 +134,16 @@ export default async function CourtsPage() {
         >
           loisirs.montreal.ca
         </a>{" "}
-        and refreshed every 24 hours.
+        and refreshed every 24 hours. Notes maintained in{" "}
+        <a
+          href="https://github.com/KatFishSnake/tennismtl.com/blob/main/data/court-notes.ts"
+          target="_blank"
+          rel="noreferrer"
+          className="underline hover:text-foreground"
+        >
+          data/court-notes.ts
+        </a>{" "}
+        — PRs welcome.
       </p>
 
       <p className="mt-12 text-xs text-muted-foreground">
