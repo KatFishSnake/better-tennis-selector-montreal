@@ -467,13 +467,13 @@ export default function Home() {
             onClick={search}
             disabled={loading}
             aria-busy={loading}
-            className="w-full sm:w-auto sm:self-start disabled:opacity-100 disabled:bg-primary/70"
+            className="w-full sm:w-auto sm:self-start bg-court text-court-foreground [a]:hover:bg-court/90 hover:bg-court/90 disabled:opacity-100 disabled:bg-court/70"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="inline-block h-3 w-3 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin"
+                  className="inline-block h-3 w-3 rounded-full border-2 border-court-foreground/30 border-t-court-foreground animate-spin"
                 />
                 Searching…
               </span>
