@@ -531,13 +531,72 @@ export default function Home() {
         </div>
       )}
 
-      <footer className="mt-12 text-xs text-muted-foreground space-y-1">
+      <section className="mt-16 grid gap-6 sm:grid-cols-2 text-sm">
+        <div>
+          <h2 className="font-semibold mb-2">How this works</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            This site queries the City of Montreal&apos;s public reservation
+            system (loisirs.montreal.ca) directly and shows only what matters:
+            what time slots are open, at which park, and at what price.
+            Booking happens on the City&apos;s site — sign in once and every
+            slot click jumps you straight to checkout.
+          </p>
+        </div>
+        <div>
+          <h2 className="font-semibold mb-2">Tips</h2>
+          <ul className="text-muted-foreground leading-relaxed list-disc pl-4 space-y-1">
+            <li>Bookings open 2 days in advance.</li>
+            <li>
+              Late-night slots (after 10 PM) are often free at outdoor courts.
+            </li>
+            <li>
+              Parc La Fontaine, Jeanne-Mance, and IGA Stadium have the most
+              courts.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <footer className="mt-12 pt-8 border-t border-border text-xs text-muted-foreground space-y-3">
         <p>
-          Clicking a slot opens loisirs.montreal.ca filtered to that exact time.
-          Click the green <span className="font-mono">+</span> next to your row
-          to add it to your cart and book.
+          Clicking a slot opens loisirs.montreal.ca filtered to that exact
+          time. Click the green <span className="font-mono">+</span> next to
+          your row to add it to your cart and book. If you&apos;re not signed
+          in yet, use the Sign in button at the top.
         </p>
-        <p>If you&apos;re not signed in yet, use the Sign in button above.</p>
+        <p>
+          Not affiliated with the City of Montreal. All bookings are processed
+          on{" "}
+          <a
+            href="https://loisirs.montreal.ca/IC3/"
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-foreground"
+          >
+            loisirs.montreal.ca
+          </a>
+          .
+        </p>
+        <p className="pt-2">
+          Made with love of tennis by{" "}
+          <a
+            href="https://heyandre.so"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            heyandre.so
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://github.com/KatFishSnake/better-tennis-selector-montreal"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-foreground underline-offset-4 hover:underline"
+          >
+            Source on GitHub
+          </a>
+        </p>
       </footer>
     </main>
   );
