@@ -751,7 +751,7 @@ export default function Home() {
             href="https://loisirs.montreal.ca/IC3/"
             target="_blank"
             rel="noreferrer"
-            className="underline hover:text-foreground"
+            className="underline-offset-4 hover:underline hover:text-foreground"
           >
             loisirs.montreal.ca
           </a>
@@ -772,7 +772,7 @@ export default function Home() {
             href="https://github.com/KatFishSnake/tennismtl.com"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-foreground underline-offset-4 hover:underline"
+            className="underline-offset-4 hover:underline hover:text-foreground"
           >
             Source on GitHub
           </a>
