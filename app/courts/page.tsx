@@ -42,10 +42,10 @@ export default async function CourtsPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:py-16 w-full">
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
+      <p className="text-xs font-medium uppercase tracking-eyebrow text-muted-foreground mb-3">
         Directory
       </p>
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] mb-3">
+      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-display-sm mb-3">
         Montreal tennis courts on loisirs.montreal.ca
       </h1>
       <p className="text-sm text-muted-foreground mb-6 max-w-xl leading-relaxed">

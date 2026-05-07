@@ -11,10 +11,10 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:py-16 w-full">
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
+      <p className="text-xs font-medium uppercase tracking-eyebrow text-muted-foreground mb-3">
         About
       </p>
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] mb-6">
+      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-display-sm mb-6">
         Tennis MTL
       </h1>
 

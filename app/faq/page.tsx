@@ -19,15 +19,15 @@ const QA: { q: string; a: string }[] = [
   },
   {
     q: "Are there free tennis courts in Montreal?",
-    a: "Yes. Most outdoor public courts have free slots — typically late at night, often after 10 PM. Daytime and prime-time slots are paid, with prices varying by borough (usually $5–12 per hour). Indoor facilities such as Stade IGA are paid year-round.",
+    a: "Yes. Most outdoor public courts have free slots — typically late at night, often after 10 PM. Daytime and prime-time slots are paid, with prices varying by borough (usually $5–12 per hour). Indoor facilities such as Complexe sportif Claude-Robillard are paid year-round.",
   },
   {
     q: "Which Montreal parks have the most tennis courts?",
-    a: "Parc La Fontaine, Parc Jeanne-Mance, and Stade IGA have the largest concentration of bookable courts. La Fontaine and Jeanne-Mance are outdoor public courts; Stade IGA has both indoor and outdoor options.",
+    a: "Parc La Fontaine has 14 outdoor courts (the largest in central Montreal); Parc Jeanne-Mance has outdoor courts at the foot of Mount Royal; Complexe sportif Claude-Robillard has 4 indoor courts year-round plus 10 outdoor courts in summer. All three are bookable on loisirs.montreal.ca.",
   },
   {
     q: "Where can I play tennis indoors in Montreal?",
-    a: "Stade IGA (in Parc Jarry) is the main public indoor option bookable through loisirs.montreal.ca. Filter by Tennis (indoor) on Tennis MTL or directly on the City's site to see availability.",
+    a: "Complexe sportif Claude-Robillard (in Ahuntsic-Cartierville, built for the 1976 Olympics) is the main public indoor option bookable through loisirs.montreal.ca, with 4 indoor courts open year-round. A few other multi-sport centres also list indoor tennis. Filter by Tennis (indoor) on Tennis MTL to see live availability. Note: Stade IGA / IGA Stadium in Parc Jarry is operated by Tennis Canada and is not bookable through the City's system.",
   },
   {
     q: "Do I need a Loisirs Montréal account to book?",
@@ -68,10 +68,10 @@ const FAQ_LD = {
 export default function FaqPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:py-16 w-full">
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
+      <p className="text-xs font-medium uppercase tracking-eyebrow text-muted-foreground mb-3">
         FAQ
       </p>
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] mb-3">
+      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-display-sm mb-3">
         Booking tennis in Montreal — questions and answers
       </h1>
       <p className="text-sm text-muted-foreground mb-10 max-w-xl leading-relaxed">

@@ -344,10 +344,10 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:py-16 w-full">
       <header className="mb-8 sm:mb-10">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
+        <p className="text-xs font-medium uppercase tracking-eyebrow text-muted-foreground mb-3">
           Montréal · Loisirs
         </p>
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-display">
           Tennis MTL
           <span className="block text-muted-foreground font-medium">
             better tennis booking for Montreal
