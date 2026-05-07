@@ -213,6 +213,59 @@ export default function Home() {
     });
   }, [results, timeFilter]);
 
+  // Preferences: keyed by "<dayOfWeek>-<HH:MM>" (local Montreal time).
+  // Captures the "I usually book Friday at 7pm" pattern.
+  const PREF_KEY = "tennismtl.preferences.v1";
+  const [preferences, setPreferences] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PREF_KEY);
+      if (raw) setPreferences(JSON.parse(raw));
+    } catch {
+      // ignore corrupt storage
+    }
+  }, []);
+
+  function persistPreferences(next: Record<string, number>) {
+    setPreferences(next);
+    try {
+      localStorage.setItem(PREF_KEY, JSON.stringify(next));
+    } catch {
+      // ignore quota errors
+    }
+  }
+
+  function bucketKey(iso: string): string {
+    // "Friday-19:00" in Montreal local time.
+    const d = new Date(iso);
+    const day = d
+      .toLocaleDateString("en-US", {
+        weekday: "long",
+        timeZone: "America/Toronto",
+      })
+      .toLowerCase();
+    const time = d.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Toronto",
+    });
+    return `${day}-${time}`;
+  }
+
+  function recordPreference(iso: string) {
+    const k = bucketKey(iso);
+    persistPreferences({ ...preferences, [k]: (preferences[k] ?? 0) + 1 });
+  }
+
+  function removePreference(iso: string) {
+    const k = bucketKey(iso);
+    const next = { ...preferences };
+    delete next[k];
+    persistPreferences(next);
+  }
+
   const byTime = useMemo(() => {
     if (!filteredResults) return null;
     const map = new Map<
@@ -239,10 +292,15 @@ export default function Home() {
         a.facility.name.localeCompare(b.facility.name, "fr", { numeric: true }),
       );
     }
-    return [...map.values()].sort((a, b) =>
-      a.startIso.localeCompare(b.startIso),
-    );
-  }, [filteredResults]);
+    const buckets = [...map.values()].map((b) => ({
+      ...b,
+      preferred: preferences[bucketKey(b.startIso)] ?? 0,
+    }));
+    return buckets.sort((a, b) => {
+      if (a.preferred !== b.preferred) return b.preferred - a.preferred;
+      return a.startIso.localeCompare(b.startIso);
+    });
+  }, [filteredResults, preferences]);
 
   function shortCourtName(name: string): string {
     // "Terrain de tennis #11, La Fontaine" → "#11"
@@ -270,15 +328,15 @@ export default function Home() {
     init?.sites.find((s) => s.id === siteId)?.name ?? "…";
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16 w-full">
-      <header className="mb-10">
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:py-16 w-full">
+      <header className="mb-8 sm:mb-10">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
           Montréal · Loisirs
         </p>
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
-          Better tennis booking
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
+          Tennis MTL
           <span className="block text-muted-foreground font-medium">
-            for Montreal
+            better tennis booking for Montreal
           </span>
         </h1>
         <p className="text-muted-foreground mt-4 max-w-xl">
@@ -286,12 +344,13 @@ export default function Home() {
           <span className="font-medium text-foreground">
             loisirs.montreal.ca
           </span>
-          . One click jumps straight to the booking page.
+          . Availability is queried live; one click jumps straight to the
+          booking page.
         </p>
       </header>
 
       <Card className="mb-6 border-primary/30 bg-primary/[0.04] shadow-none">
-        <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center gap-5">
+        <CardContent className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="flex items-start gap-3 flex-1">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
               1
@@ -332,14 +391,14 @@ export default function Home() {
         <CardContent className="grid gap-5">
           <div className="grid gap-2">
             <Label>Day</Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               {dayButtons.map((n) => (
                 <Button
                   key={n}
                   type="button"
                   variant={dayOffset === n ? "default" : "outline"}
                   onClick={() => setDayOffset(n)}
-                  className="min-w-32"
+                  className="w-full sm:w-auto sm:min-w-32"
                 >
                   {formatDayLabel(dateNDaysOut(n))}
                 </Button>
@@ -474,62 +533,74 @@ export default function Home() {
           )}
 
           {byTime.map((bucket) => {
-            const freeCount = bucket.slots.filter((s) => s.totalPrice === 0).length;
             const minPrice = Math.min(...bucket.slots.map((s) => s.totalPrice));
+            const isPreferred = bucket.preferred > 0;
             return (
-              <Card key={bucket.startIso} className="shadow-none">
-                <CardContent className="p-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mb-3">
-                    <div className="flex items-baseline gap-2 sm:min-w-[140px]">
-                      <span className="text-2xl font-bold tracking-tight tabular-nums">
+              <Card
+                key={bucket.startIso}
+                className={
+                  "shadow-none transition-colors " +
+                  (isPreferred
+                    ? "border-foreground/30 bg-foreground/[0.02]"
+                    : "")
+                }
+              >
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-xl font-bold tracking-tight tabular-nums">
                         {formatTime(bucket.startIso)}
                       </span>
-                      <span className="text-sm text-muted-foreground tabular-nums">
+                      <span className="text-xs text-muted-foreground tabular-nums">
                         – {formatTime(bucket.endIso)}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-muted-foreground">
-                        {bucket.slots.length} court
+                      <span className="text-xs text-muted-foreground">
+                        · {bucket.slots.length} court
                         {bucket.slots.length === 1 ? "" : "s"}
+                        {minPrice > 0 ? ` · from $${minPrice.toFixed(0)}` : ""}
                       </span>
-                      {freeCount > 0 ? (
-                        <span className="font-semibold text-foreground">
-                          · {freeCount} free
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          · from ${minPrice.toFixed(0)}
-                        </span>
-                      )}
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {bucket.slots.map((s) => {
-                      const free = s.totalPrice === 0;
-                      return (
-                        <a
-                          key={s.facilityScheduleId}
-                          href={ic3DeepLink(s)}
-                          target="_blank"
-                          rel="noreferrer"
-                          title={s.facility.name}
-                          className={
-                            buttonVariants({
-                              variant: free ? "default" : "outline",
-                              size: "sm",
-                            }) + " h-auto py-1.5 tabular-nums"
-                          }
+                    {isPreferred && (
+                      <button
+                        type="button"
+                        onClick={() => removePreference(bucket.startIso)}
+                        title="Remove from your usual times"
+                        className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground/80 hover:text-foreground transition-colors"
+                      >
+                        <span>your usual</span>
+                        <span
+                          aria-hidden
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-muted-foreground/30 hover:border-foreground hover:bg-muted leading-none"
                         >
-                          <span className="font-semibold">
-                            {shortCourtName(s.facility.name)}
-                          </span>
-                          <span className="ml-1.5 text-xs opacity-70">
-                            {free ? "Free" : `$${s.totalPrice.toFixed(0)}`}
-                          </span>
-                        </a>
-                      );
-                    })}
+                          ×
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {bucket.slots.map((s) => (
+                      <a
+                        key={s.facilityScheduleId}
+                        href={ic3DeepLink(s)}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => recordPreference(s.startDateTime)}
+                        title={s.facility.name}
+                        className={
+                          buttonVariants({
+                            variant: "outline",
+                            size: "sm",
+                          }) + " h-auto py-1 tabular-nums"
+                        }
+                      >
+                        <span className="font-semibold">
+                          {shortCourtName(s.facility.name)}
+                        </span>
+                        <span className="ml-1.5 text-xs opacity-70">
+                          {s.totalPrice === 0 ? "Free" : `$${s.totalPrice.toFixed(0)}`}
+                        </span>
+                      </a>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -538,33 +609,89 @@ export default function Home() {
         </div>
       )}
 
-      <section className="mt-16 grid gap-6 sm:grid-cols-2 text-sm">
-        <div>
-          <h2 className="font-semibold mb-2">How this works</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            This site queries the City of Montreal&apos;s public reservation
-            system (loisirs.montreal.ca) directly and shows only what matters:
-            what time slots are open, at which park, and at what price.
-            Booking happens on the City&apos;s site — sign in once and every
-            slot click jumps you straight to checkout.
-          </p>
+      <section id="how-it-works" className="mt-16 text-sm">
+        <h2 className="font-semibold mb-2 text-base">How Tennis MTL works</h2>
+        <p className="text-muted-foreground leading-relaxed max-w-2xl">
+          Tennis MTL queries the City of Montreal&apos;s public reservation
+          system (loisirs.montreal.ca) directly and shows only what matters:
+          which time slots are open, at which park, and at what price.
+          Booking happens on the City&apos;s site — sign in once and every
+          slot click jumps you straight to checkout.
+        </p>
+      </section>
+
+      <section id="faq" className="mt-10 text-sm">
+        <h2 className="font-semibold mb-4 text-base">
+          Montreal tennis booking — quick answers
+        </h2>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <h3 className="font-medium text-foreground mb-1">
+              When does the Montreal tennis booking window open?
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Bookings on loisirs.montreal.ca open 2 days in advance. Slots
+              become reservable 48 hours before play time and fill quickly
+              during peak evening hours.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium text-foreground mb-1">
+              Are there free tennis courts in Montreal?
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Yes — outdoor public courts are often free for late-night slots,
+              typically after 10 PM. Daytime and prime-time slots are paid,
+              with prices varying by borough. Indoor courts (e.g. Stade IGA)
+              are paid year-round.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium text-foreground mb-1">
+              Which Montreal parks have the most tennis courts?
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Parc La Fontaine, Parc Jeanne-Mance, and Stade IGA have the
+              largest concentration of bookable courts. La Fontaine and
+              Jeanne-Mance are outdoor public courts; Stade IGA has indoor
+              and outdoor options.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium text-foreground mb-1">
+              Do I need a Loisirs Montréal account?
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Yes. All bookings are processed on loisirs.montreal.ca and
+              require a free Loisirs Montréal account. Sign in once on the
+              City&apos;s site, then any slot click here goes straight to
+              checkout.
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="font-semibold mb-2">Tips</h2>
-          <ul className="text-muted-foreground leading-relaxed list-disc pl-4 space-y-1">
-            <li>Bookings open 2 days in advance.</li>
-            <li>
-              Late-night slots (after 10 PM) are often free at outdoor courts.
-            </li>
-            <li>
-              Parc La Fontaine, Jeanne-Mance, and IGA Stadium have the most
-              courts.
-            </li>
-          </ul>
-        </div>
+        <p className="mt-6 text-xs text-muted-foreground">
+          See the{" "}
+          <a href="/faq" className="underline-offset-4 hover:underline hover:text-foreground">
+            full FAQ
+          </a>
+          , the{" "}
+          <a href="/courts" className="underline-offset-4 hover:underline hover:text-foreground">
+            Montreal courts directory
+          </a>
+          , or read{" "}
+          <a href="/about" className="underline-offset-4 hover:underline hover:text-foreground">
+            about this project
+          </a>
+          .
+        </p>
       </section>
 
       <footer className="mt-12 pt-8 border-t border-border text-xs text-muted-foreground space-y-3">
+        <p>
+          Availability is refreshed live from loisirs.montreal.ca on every
+          search. Site last updated{" "}
+          <time dateTime="2026-05-07">May 7, 2026</time>.
+        </p>
         <p>
           Clicking a slot opens loisirs.montreal.ca filtered to that exact
           time. Click the green <span className="font-mono">+</span> next to
