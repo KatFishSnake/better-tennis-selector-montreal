@@ -207,19 +207,56 @@ export default function Home() {
     });
   }, [results, timeFilter]);
 
-  const byCourt = useMemo(() => {
+  const byTime = useMemo(() => {
     if (!filteredResults) return null;
-    const map = new Map<number, { name: string; slots: SearchResult[] }>();
+    const map = new Map<
+      string,
+      {
+        startIso: string;
+        endIso: string;
+        slots: SearchResult[];
+      }
+    >();
     for (const r of filteredResults) {
-      const key = r.facility.id;
-      if (!map.has(key)) map.set(key, { name: r.facility.name, slots: [] });
+      const key = `${r.startDateTime}|${r.endDateTime}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          startIso: r.startDateTime,
+          endIso: r.endDateTime,
+          slots: [],
+        });
+      }
       map.get(key)!.slots.push(r);
     }
     for (const v of map.values()) {
-      v.slots.sort((a, b) => a.startDateTime.localeCompare(b.startDateTime));
+      v.slots.sort((a, b) =>
+        a.facility.name.localeCompare(b.facility.name, "fr", { numeric: true }),
+      );
     }
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+    return [...map.values()].sort((a, b) =>
+      a.startIso.localeCompare(b.startIso),
+    );
   }, [filteredResults]);
+
+  function shortCourtName(name: string): string {
+    // "Terrain de tennis #11, La Fontaine" → "#11"
+    const m = name.match(/#\s*(\d+)/);
+    return m ? `#${m[1]}` : name;
+  }
+
+  // Auto-refresh stale tab on focus (>24h since last fetch).
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== "visible") return;
+      if (!searchedAt) return;
+      const ageMs = Date.now() - searchedAt.getTime();
+      if (ageMs > 24 * 60 * 60 * 1000) {
+        window.location.reload();
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [searchedAt]);
 
   const dayButtons = [0, 1, 2, 3];
   const selectedSiteName =
@@ -401,23 +438,27 @@ export default function Home() {
         </Card>
       )}
 
-      {byCourt && !loading && (
-        <div className="grid gap-4">
+      {byTime && !loading && (
+        <div className="grid gap-3">
           <div className="flex items-baseline justify-between">
             <p className="text-sm text-muted-foreground">
-              {filteredResults?.length ?? 0} slots shown
+              {byTime.length} time
+              {byTime.length === 1 ? "" : "s"} available
               {recordCount > (filteredResults?.length ?? 0) && (
-                <span> · {recordCount} total</span>
+                <span> · {filteredResults?.length} of {recordCount} slots</span>
               )}
             </p>
             {searchedAt && (
               <p className="text-xs text-muted-foreground">
-                Searched at {searchedAt.toLocaleTimeString("en-US")}
+                {searchedAt.toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
               </p>
             )}
           </div>
 
-          {byCourt.length === 0 && (
+          {byTime.length === 0 && (
             <Card>
               <CardContent className="p-6 text-center text-muted-foreground">
                 No slots found for this combination.
@@ -425,40 +466,68 @@ export default function Home() {
             </Card>
           )}
 
-          {byCourt.map((court) => (
-            <Card key={court.name}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{court.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {court.slots.map((s) => {
-                    const free = s.totalPrice === 0;
-                    return (
-                      <a
-                        key={s.facilityScheduleId}
-                        href={ic3DeepLink(s)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={buttonVariants({
-                          variant: free ? "default" : "outline",
-                          size: "sm",
-                        }) + " h-auto py-2"}
-                      >
-                        <span className="font-semibold">
-                          {formatTime(s.startDateTime)}
+          {byTime.map((bucket) => {
+            const freeCount = bucket.slots.filter((s) => s.totalPrice === 0).length;
+            const minPrice = Math.min(...bucket.slots.map((s) => s.totalPrice));
+            return (
+              <Card key={bucket.startIso} className="shadow-none">
+                <CardContent className="p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mb-3">
+                    <div className="flex items-baseline gap-2 sm:min-w-[140px]">
+                      <span className="text-2xl font-bold tracking-tight tabular-nums">
+                        {formatTime(bucket.startIso)}
+                      </span>
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        – {formatTime(bucket.endIso)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">
+                        {bucket.slots.length} court
+                        {bucket.slots.length === 1 ? "" : "s"}
+                      </span>
+                      {freeCount > 0 ? (
+                        <span className="font-semibold text-foreground">
+                          · {freeCount} free
                         </span>
-                        <span className="ml-2 text-xs opacity-70">
-                          {free ? "Free" : `$${s.totalPrice.toFixed(0)}`}
+                      ) : (
+                        <span className="text-muted-foreground">
+                          · from ${minPrice.toFixed(0)}
                         </span>
-                        <span className="ml-2 text-xs opacity-60">→ Book</span>
-                      </a>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {bucket.slots.map((s) => {
+                      const free = s.totalPrice === 0;
+                      return (
+                        <a
+                          key={s.facilityScheduleId}
+                          href={ic3DeepLink(s)}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={s.facility.name}
+                          className={
+                            buttonVariants({
+                              variant: free ? "default" : "outline",
+                              size: "sm",
+                            }) + " h-auto py-1.5 tabular-nums"
+                          }
+                        >
+                          <span className="font-semibold">
+                            {shortCourtName(s.facility.name)}
+                          </span>
+                          <span className="ml-1.5 text-xs opacity-70">
+                            {free ? "Free" : `$${s.totalPrice.toFixed(0)}`}
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
