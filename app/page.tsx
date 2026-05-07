@@ -469,9 +469,20 @@ export default function Home() {
             size="lg"
             onClick={search}
             disabled={loading}
-            className="w-full sm:w-auto sm:self-start"
+            aria-busy={loading}
+            className="w-full sm:w-auto sm:self-start disabled:opacity-100 disabled:bg-primary/70"
           >
-            {loading ? "Searching…" : "See available slots"}
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-3 w-3 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin"
+                />
+                Searching…
+              </span>
+            ) : (
+              "See available slots"
+            )}
           </Button>
         </CardContent>
       </Card>
