@@ -398,8 +398,12 @@ export default function Home() {
         </CardHeader>
         <CardContent className="grid gap-5">
           <div className="grid gap-2">
-            <Label>Day</Label>
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <Label id="day-label">Day</Label>
+            <div
+              role="group"
+              aria-labelledby="day-label"
+              className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap"
+            >
               {dayButtons.map((n) => (
                 <Button
                   key={n}
@@ -416,9 +420,9 @@ export default function Home() {
 
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label>Sport</Label>
+              <Label htmlFor="sport-trigger">Sport</Label>
               <Select value={sportId} onValueChange={(v) => v && setSportId(v)}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="sport-trigger" className="w-full">
                   <SelectValue>
                     {(v) => SPORT_OPTIONS.find((s) => s.id === v)?.label ?? ""}
                   </SelectValue>
@@ -433,9 +437,9 @@ export default function Home() {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Location</Label>
+              <Label htmlFor="location-trigger">Location</Label>
               <Select value={String(siteId)} onValueChange={(v) => v && setSiteId(parseInt(v, 10))}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="location-trigger" className="w-full">
                   <SelectValue placeholder={selectedSiteName}>
                     {(v) => sites.find((s) => String(s.id) === v)?.name ?? selectedSiteName}
                   </SelectValue>
