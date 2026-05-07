@@ -344,7 +344,8 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:py-16 w-full">
       <header className="mb-8 sm:mb-10">
-        <p className="text-xs font-medium uppercase tracking-eyebrow text-muted-foreground mb-3">
+        <p className="text-xs font-semibold uppercase tracking-eyebrow text-court mb-3 inline-flex items-center gap-1.5">
+          <span aria-hidden="true" className="inline-block w-1.5 h-1.5 rounded-full bg-court" />
           Montréal · Loisirs
         </p>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-display">
@@ -360,12 +361,12 @@ export default function Home() {
         </p>
       </header>
 
-      <Card className="mb-6 border-primary/20 bg-primary/5 shadow-none">
+      <Card className="mb-6 border-court/30 bg-court/[0.04] shadow-none">
         <CardContent className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="flex items-start gap-3 flex-1">
             <div
               aria-hidden="true"
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold"
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-court text-court-foreground text-sm font-bold"
             >
               1
             </div>
@@ -522,26 +523,16 @@ export default function Home() {
 
       {byTime && !loading && (
         <div className="grid gap-3">
-          <div className="flex items-baseline justify-between">
-            <p className="text-sm text-muted-foreground">
-              {byTime.length} time
-              {byTime.length === 1 ? "" : "s"} available
-              {recordCount > (filteredResults?.length ?? 0) && (
-                <span>
-                  {" "}
-                  · {filteredResults?.length} of {recordCount} slots
-                </span>
-              )}
-            </p>
-            {searchedAt && (
-              <p className="text-xs text-muted-foreground">
-                {searchedAt.toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </p>
+          <p className="text-sm text-muted-foreground">
+            {byTime.length} time
+            {byTime.length === 1 ? "" : "s"} available
+            {recordCount > (filteredResults?.length ?? 0) && (
+              <span>
+                {" "}
+                · {filteredResults?.length} of {recordCount} slots
+              </span>
             )}
-          </div>
+          </p>
 
           {byTime.length === 0 && (
             <Card>
@@ -596,13 +587,13 @@ export default function Home() {
                 key={bucket.startIso}
                 className={
                   "shadow-none transition-colors " +
-                  (isPreferred ? "border-foreground/30 bg-foreground/[0.02]" : "")
+                  (isPreferred ? "border-court/40 bg-court/[0.04]" : "")
                 }
               >
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between gap-3 mb-2">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-xl font-bold tracking-tight tabular-nums">
+                    <div className="flex items-center gap-2 flex-wrap leading-none">
+                      <span className="text-xl font-bold tracking-tight tabular-nums leading-none">
                         {formatTime(bucket.startIso)}
                       </span>
                       <span className="text-xs text-muted-foreground tabular-nums">
@@ -620,12 +611,12 @@ export default function Home() {
                         onClick={() => removePreference(bucket.startIso)}
                         aria-label={`Remove ${formatTime(bucket.startIso)} from your usual times`}
                         title="Remove from your usual times"
-                        className="-my-1 -mr-1 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] uppercase tracking-wider text-muted-foreground/80 hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                        className="-my-1 -mr-1 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] uppercase tracking-wider text-court/80 hover:text-court hover:bg-court/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court/40"
                       >
                         <span>your usual</span>
                         <span
                           aria-hidden="true"
-                          className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-muted-foreground/30 leading-none"
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-court/40 leading-none"
                         >
                           ×
                         </span>

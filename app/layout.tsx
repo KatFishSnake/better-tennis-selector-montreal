@@ -176,7 +176,7 @@ const FAQ_LD = {
       name: "Are there free tennis courts in Montreal?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. Outdoor public courts are often free for late-night slots — typically after 10 PM. Daytime and prime-time slots are paid, with prices varying by borough. Indoor courts (e.g. Stade IGA) are paid year-round.",
+        text: "Yes. Outdoor public courts are often free for late-night slots — typically after 10 PM. Daytime and prime-time slots are paid, with prices varying by borough. Indoor courts (e.g. Complexe sportif Claude-Robillard) are paid year-round.",
       },
     },
     {
@@ -184,7 +184,7 @@ const FAQ_LD = {
       name: "Which Montreal parks have the most tennis courts?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Parc La Fontaine, Parc Jeanne-Mance, and Stade IGA have the largest concentration of bookable courts. La Fontaine and Jeanne-Mance are outdoor public courts; Stade IGA has both indoor and outdoor options.",
+        text: "Parc La Fontaine (14 outdoor courts), Parc Jeanne-Mance, and Complexe sportif Claude-Robillard have the largest concentration of bookable courts on loisirs.montreal.ca. La Fontaine and Jeanne-Mance are outdoor public courts; Claude-Robillard has 4 indoor courts (year-round) plus 10 outdoor courts in summer.",
       },
     },
     {

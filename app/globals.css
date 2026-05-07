@@ -49,6 +49,9 @@
   --tracking-eyebrow: 0.18em;
   --leading-display: 1.05;
   --leading-display-sm: 1.1;
+  --color-court: var(--court);
+  --color-court-foreground: var(--court-foreground);
+  --color-court-muted: var(--court-muted);
 }
 
 :root {
@@ -84,6 +87,9 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --court: oklch(0.55 0.12 150);
+  --court-foreground: oklch(0.99 0.005 150);
+  --court-muted: oklch(0.96 0.04 150);
 }
 
 .dark {
@@ -118,6 +124,9 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --court: oklch(0.65 0.13 150);
+  --court-foreground: oklch(0.15 0.02 150);
+  --court-muted: oklch(0.25 0.05 150);
 }
 
 @layer base {

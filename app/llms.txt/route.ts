@@ -15,7 +15,8 @@ const BODY = `# Tennis MTL
 
 - Bookings open 2 days in advance on loisirs.montreal.ca.
 - Outdoor courts are often free after 10 PM. Daytime and prime-time slots are paid.
-- Largest court counts: Parc La Fontaine, Parc Jeanne-Mance, Stade IGA.
+- Largest court counts on loisirs.montreal.ca: Parc La Fontaine (14 outdoor), Parc Jeanne-Mance, Complexe sportif Claude-Robillard (4 indoor + 10 outdoor).
+- Stade IGA / IGA Stadium (Parc Jarry) is operated by Tennis Canada and is NOT bookable through loisirs.montreal.ca.
 - A free Loisirs Montréal account is required to confirm any booking.
 
 ## Key pages
