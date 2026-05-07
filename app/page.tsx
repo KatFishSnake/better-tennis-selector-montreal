@@ -360,7 +360,7 @@ export default function Home() {
         </p>
       </header>
 
-      <Card className="mb-6 border-primary/30 bg-primary/[0.04] shadow-none">
+      <Card className="mb-6 border-primary/20 bg-primary/5 shadow-none">
         <CardContent className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="flex items-start gap-3 flex-1">
             <div
