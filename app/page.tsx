@@ -363,11 +363,17 @@ export default function Home() {
       <Card className="mb-6 border-primary/30 bg-primary/[0.04] shadow-none">
         <CardContent className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="flex items-start gap-3 flex-1">
-            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+            <div
+              aria-hidden="true"
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold"
+            >
               1
             </div>
             <div>
-              <p className="font-semibold leading-tight">Sign in to Loisirs Montréal</p>
+              <p className="font-semibold leading-tight">
+                <span className="sr-only">Step 1: </span>
+                Sign in to Loisirs Montréal
+              </p>
               <p className="text-sm text-muted-foreground mt-1.5">
                 Once. After that, clicking any slot here goes straight to the booking page.
               </p>
@@ -390,9 +396,13 @@ export default function Home() {
       <Card className="mb-6 shadow-none">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3 text-base font-semibold">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-bold">
+            <span
+              aria-hidden="true"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold"
+            >
               2
             </span>
+            <span className="sr-only">Step 2: </span>
             Find your slot
           </CardTitle>
         </CardHeader>
@@ -634,7 +644,7 @@ export default function Home() {
             <p className="text-muted-foreground leading-relaxed">
               Yes — outdoor public courts are often free for late-night slots, typically after 10
               PM. Daytime and prime-time slots are paid, with prices varying by borough. Indoor
-              courts (e.g. Stade IGA) are paid year-round.
+              courts (e.g. Complexe sportif Claude-Robillard) are paid year-round.
             </p>
           </div>
           <div>
@@ -642,9 +652,10 @@ export default function Home() {
               Which Montreal parks have the most tennis courts?
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Parc La Fontaine, Parc Jeanne-Mance, and Stade IGA have the largest concentration of
-              bookable courts. La Fontaine and Jeanne-Mance are outdoor public courts; Stade IGA has
-              indoor and outdoor options.
+              Parc La Fontaine (14 outdoor courts), Parc Jeanne-Mance, and Complexe sportif
+              Claude-Robillard have the largest concentration of bookable courts on
+              loisirs.montreal.ca. La Fontaine and Jeanne-Mance are outdoor public courts;
+              Claude-Robillard has 4 indoor courts year-round plus 10 outdoor in summer.
             </p>
           </div>
           <div>
