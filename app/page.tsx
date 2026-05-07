@@ -128,10 +128,16 @@ export default function Home() {
       value.startTime = toMontrealOffset(slot.startDateTime);
       value.endTime = toMontrealOffset(slot.endDateTime);
     }
-    const param = {
+    const param: Record<string, unknown> = {
       filter: { isCollapsed: false, value },
       sortable: { isOrderAsc: true, column: "facility.name" },
     };
+    if (slot) {
+      // IC3's textbox filter — narrow to the exact court.
+      // Trailing comma ensures "#3" doesn't also match "#30", "#31", etc.
+      const m = slot.facility.name.match(/#\s*(\d+),/);
+      if (m) param.search = `#${m[1]},`;
+    }
     return `https://loisirs.montreal.ca/IC3/#/U6510/search/?searchParam=${encodeURIComponent(
       JSON.stringify(param),
     )}`;
