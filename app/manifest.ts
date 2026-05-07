@@ -4,8 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Better Tennis Booking · Montreal",
     short_name: "Tennis MTL",
-    description:
-      "Find open tennis courts in Montreal faster than loisirs.montreal.ca.",
+    description: "Find open tennis courts in Montreal faster than loisirs.montreal.ca.",
     start_url: "/",
     scope: "/",
     display: "standalone",

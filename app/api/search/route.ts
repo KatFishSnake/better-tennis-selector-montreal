@@ -1,10 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-  IC3_BASE,
-  IC3_HEADERS,
-  type SearchPayload,
-  type SearchResponse,
-} from "@/lib/ic3";
+import { type NextRequest, NextResponse } from "next/server";
+import { IC3_BASE, IC3_HEADERS, type SearchPayload, type SearchResponse } from "@/lib/ic3";
 
 export const maxDuration = 90;
 

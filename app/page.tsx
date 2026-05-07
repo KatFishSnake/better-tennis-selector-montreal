@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,33 +11,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DEFAULT_SITE_ID,
-  TENNIS_OUTDOOR_TYPE_ID,
-  TENNIS_INDOOR_TYPE_ID,
-  PICKLEBALL_TYPE_ID,
   dateForIC3,
   type InitResponse,
-  type SearchResult,
+  PICKLEBALL_TYPE_ID,
   type SearchResponse,
+  type SearchResult,
+  TENNIS_INDOOR_TYPE_ID,
+  TENNIS_OUTDOOR_TYPE_ID,
 } from "@/lib/ic3";
 
 type Init = InitResponse["result"];
 
-const SPORT_OPTIONS: { id: string; label: string; typeIds: string }[] = [
-  { id: "tennis-out", label: "Tennis (outdoor)", typeIds: String(TENNIS_OUTDOOR_TYPE_ID) },
+type SportOption = { id: string; label: string; typeIds: string };
+
+const TENNIS_OUTDOOR: SportOption = {
+  id: "tennis-out",
+  label: "Tennis (outdoor)",
+  typeIds: String(TENNIS_OUTDOOR_TYPE_ID),
+};
+
+const SPORT_OPTIONS: readonly SportOption[] = [
+  TENNIS_OUTDOOR,
   { id: "tennis-in", label: "Tennis (indoor)", typeIds: String(TENNIS_INDOOR_TYPE_ID) },
-  { id: "tennis-all", label: "Tennis (all)", typeIds: `${TENNIS_OUTDOOR_TYPE_ID},${TENNIS_INDOOR_TYPE_ID}` },
+  {
+    id: "tennis-all",
+    label: "Tennis (all)",
+    typeIds: `${TENNIS_OUTDOOR_TYPE_ID},${TENNIS_INDOOR_TYPE_ID}`,
+  },
   { id: "pickleball", label: "Pickleball", typeIds: String(PICKLEBALL_TYPE_ID) },
 ];
 
-const TIME_FILTERS = [
-  { id: "all", label: "All", start: 0, end: 24 },
+type TimeFilter = { id: string; label: string; start: number; end: number };
+
+const TIME_FILTER_ALL: TimeFilter = { id: "all", label: "All", start: 0, end: 24 };
+
+const TIME_FILTERS: readonly TimeFilter[] = [
+  TIME_FILTER_ALL,
   { id: "morning", label: "Morning (before 12pm)", start: 0, end: 12 },
   { id: "afternoon", label: "Afternoon (12–5pm)", start: 12, end: 17 },
   { id: "evening", label: "Evening (5pm+)", start: 17, end: 24 },
 ];
+
+function bucketKey(iso: string): string {
+  const d = new Date(iso);
+  const day = d
+    .toLocaleDateString("en-US", {
+      weekday: "long",
+      timeZone: "America/Toronto",
+    })
+    .toLowerCase();
+  const time = d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "America/Toronto",
+  });
+  return `${day}-${time}`;
+}
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
@@ -100,25 +133,25 @@ export default function Home() {
       second: "2-digit",
       hour12: false,
     }).formatToParts(d);
-    const get = (t: string) => parts.find((p) => p.type === t)!.value;
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
     const hour = get("hour") === "24" ? "00" : get("hour");
     // Determine offset by comparing TZ-formatted to UTC. EDT=-04:00, EST=-05:00.
-    const tzName = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/Toronto",
-      timeZoneName: "shortOffset",
-    })
-      .formatToParts(d)
-      .find((p) => p.type === "timeZoneName")!.value;
+    const tzName =
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Toronto",
+        timeZoneName: "shortOffset",
+      })
+        .formatToParts(d)
+        .find((p) => p.type === "timeZoneName")?.value ?? "GMT-04";
     const m = tzName.match(/GMT([+-])(\d{1,2})/);
-    const sign = m ? m[1] : "-";
-    const digits = m ? m[2].padStart(2, "0") : "04";
+    const sign = m?.[1] ?? "-";
+    const digits = (m?.[2] ?? "04").padStart(2, "0");
     const offset = `${sign}${digits}:00`;
     return `${get("year")}-${get("month")}-${get("day")}T${hour}:${get("minute")}:${get("second")}.000${offset}`;
   }
 
   function ic3DeepLink(slot?: SearchResult): string {
-    if (!searchedContext)
-      return "https://loisirs.montreal.ca/IC3/#/U6510/search/";
+    if (!searchedContext) return "https://loisirs.montreal.ca/IC3/#/U6510/search/";
     const value: Record<string, unknown> = {
       siteId: searchedContext.siteId,
       facilityTypeIds: searchedContext.facilityTypeIds,
@@ -150,8 +183,8 @@ export default function Home() {
       .catch(() => setError("Couldn't load options"));
   }, []);
 
-  const sport = useMemo(
-    () => SPORT_OPTIONS.find((s) => s.id === sportId) ?? SPORT_OPTIONS[0],
+  const sport: SportOption = useMemo(
+    () => SPORT_OPTIONS.find((s) => s.id === sportId) ?? TENNIS_OUTDOOR,
     [sportId],
   );
 
@@ -201,7 +234,7 @@ export default function Home() {
 
   const filteredResults = useMemo(() => {
     if (!results) return null;
-    const tf = TIME_FILTERS.find((t) => t.id === timeFilter)!;
+    const tf = TIME_FILTERS.find((t) => t.id === timeFilter) ?? TIME_FILTER_ALL;
     return results.filter((r) => {
       const h = new Date(r.startDateTime).toLocaleString("en-US", {
         hour: "2-digit",
@@ -236,24 +269,6 @@ export default function Home() {
     }
   }
 
-  function bucketKey(iso: string): string {
-    // "Friday-19:00" in Montreal local time.
-    const d = new Date(iso);
-    const day = d
-      .toLocaleDateString("en-US", {
-        weekday: "long",
-        timeZone: "America/Toronto",
-      })
-      .toLowerCase();
-    const time = d.toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "America/Toronto",
-    });
-    return `${day}-${time}`;
-  }
-
   function recordPreference(iso: string) {
     const k = bucketKey(iso);
     persistPreferences({ ...preferences, [k]: (preferences[k] ?? 0) + 1 });
@@ -285,7 +300,7 @@ export default function Home() {
           slots: [],
         });
       }
-      map.get(key)!.slots.push(r);
+      map.get(key)?.slots.push(r);
     }
     for (const v of map.values()) {
       v.slots.sort((a, b) =>
@@ -324,8 +339,7 @@ export default function Home() {
   }, [searchedAt]);
 
   const dayButtons = [0, 1, 2, 3];
-  const selectedSiteName =
-    init?.sites.find((s) => s.id === siteId)?.name ?? "…";
+  const selectedSiteName = init?.sites.find((s) => s.id === siteId)?.name ?? "…";
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:py-16 w-full">
@@ -341,11 +355,8 @@ export default function Home() {
         </h1>
         <p className="text-muted-foreground mt-4 max-w-xl">
           A faster, cleaner way to find open courts on{" "}
-          <span className="font-medium text-foreground">
-            loisirs.montreal.ca
-          </span>
-          . Availability is queried live; one click jumps straight to the
-          booking page.
+          <span className="font-medium text-foreground">loisirs.montreal.ca</span>. Availability is
+          queried live; one click jumps straight to the booking page.
         </p>
       </header>
 
@@ -356,12 +367,9 @@ export default function Home() {
               1
             </div>
             <div>
-              <p className="font-semibold leading-tight">
-                Sign in to Loisirs Montréal
-              </p>
+              <p className="font-semibold leading-tight">Sign in to Loisirs Montréal</p>
               <p className="text-sm text-muted-foreground mt-1.5">
-                Once. After that, clicking any slot here goes straight to the
-                booking page.
+                Once. After that, clicking any slot here goes straight to the booking page.
               </p>
             </div>
           </div>
@@ -412,9 +420,7 @@ export default function Home() {
               <Select value={sportId} onValueChange={(v) => v && setSportId(v)}>
                 <SelectTrigger className="w-full">
                   <SelectValue>
-                    {(v) =>
-                      SPORT_OPTIONS.find((s) => s.id === v)?.label ?? ""
-                    }
+                    {(v) => SPORT_OPTIONS.find((s) => s.id === v)?.label ?? ""}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -428,16 +434,10 @@ export default function Home() {
             </div>
             <div className="grid gap-2">
               <Label>Location</Label>
-              <Select
-                value={String(siteId)}
-                onValueChange={(v) => v && setSiteId(parseInt(v, 10))}
-              >
+              <Select value={String(siteId)} onValueChange={(v) => v && setSiteId(parseInt(v, 10))}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={selectedSiteName}>
-                    {(v) =>
-                      sites.find((s) => String(s.id) === v)?.name ??
-                      selectedSiteName
-                    }
+                    {(v) => sites.find((s) => String(s.id) === v)?.name ?? selectedSiteName}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
@@ -492,12 +492,7 @@ export default function Home() {
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="p-6">
             <p className="text-sm font-medium text-destructive">Oops · {error}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={search}
-            >
+            <Button variant="outline" size="sm" className="mt-3" onClick={search}>
               Retry
             </Button>
           </CardContent>
@@ -511,7 +506,10 @@ export default function Home() {
               {byTime.length} time
               {byTime.length === 1 ? "" : "s"} available
               {recordCount > (filteredResults?.length ?? 0) && (
-                <span> · {filteredResults?.length} of {recordCount} slots</span>
+                <span>
+                  {" "}
+                  · {filteredResults?.length} of {recordCount} slots
+                </span>
               )}
             </p>
             {searchedAt && (
@@ -540,9 +538,7 @@ export default function Home() {
                 key={bucket.startIso}
                 className={
                   "shadow-none transition-colors " +
-                  (isPreferred
-                    ? "border-foreground/30 bg-foreground/[0.02]"
-                    : "")
+                  (isPreferred ? "border-foreground/30 bg-foreground/[0.02]" : "")
                 }
               >
                 <CardContent className="p-3 sm:p-4">
@@ -586,16 +582,12 @@ export default function Home() {
                         rel="noreferrer"
                         onClick={() => recordPreference(s.startDateTime)}
                         title={s.facility.name}
-                        className={
-                          buttonVariants({
-                            variant: "outline",
-                            size: "sm",
-                          }) + " h-auto py-1 tabular-nums"
-                        }
+                        className={`${buttonVariants({
+                          variant: "outline",
+                          size: "sm",
+                        })} h-auto py-1 tabular-nums`}
                       >
-                        <span className="font-semibold">
-                          {shortCourtName(s.facility.name)}
-                        </span>
+                        <span className="font-semibold">{shortCourtName(s.facility.name)}</span>
                         <span className="ml-1.5 text-xs opacity-70">
                           {s.totalPrice === 0 ? "Free" : `$${s.totalPrice.toFixed(0)}`}
                         </span>
@@ -612,27 +604,23 @@ export default function Home() {
       <section id="how-it-works" className="mt-16 text-sm">
         <h2 className="font-semibold mb-2 text-base">How Tennis MTL works</h2>
         <p className="text-muted-foreground leading-relaxed max-w-2xl">
-          Tennis MTL queries the City of Montreal&apos;s public reservation
-          system (loisirs.montreal.ca) directly and shows only what matters:
-          which time slots are open, at which park, and at what price.
-          Booking happens on the City&apos;s site — sign in once and every
-          slot click jumps you straight to checkout.
+          Tennis MTL queries the City of Montreal&apos;s public reservation system
+          (loisirs.montreal.ca) directly and shows only what matters: which time slots are open, at
+          which park, and at what price. Booking happens on the City&apos;s site — sign in once and
+          every slot click jumps you straight to checkout.
         </p>
       </section>
 
       <section id="faq" className="mt-10 text-sm">
-        <h2 className="font-semibold mb-4 text-base">
-          Montreal tennis booking — quick answers
-        </h2>
+        <h2 className="font-semibold mb-4 text-base">Montreal tennis booking — quick answers</h2>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <h3 className="font-medium text-foreground mb-1">
               When does the Montreal tennis booking window open?
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Bookings on loisirs.montreal.ca open 2 days in advance. Slots
-              become reservable 48 hours before play time and fill quickly
-              during peak evening hours.
+              Bookings on loisirs.montreal.ca open 2 days in advance. Slots become reservable 48
+              hours before play time and fill quickly during peak evening hours.
             </p>
           </div>
           <div>
@@ -640,10 +628,9 @@ export default function Home() {
               Are there free tennis courts in Montreal?
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Yes — outdoor public courts are often free for late-night slots,
-              typically after 10 PM. Daytime and prime-time slots are paid,
-              with prices varying by borough. Indoor courts (e.g. Stade IGA)
-              are paid year-round.
+              Yes — outdoor public courts are often free for late-night slots, typically after 10
+              PM. Daytime and prime-time slots are paid, with prices varying by borough. Indoor
+              courts (e.g. Stade IGA) are paid year-round.
             </p>
           </div>
           <div>
@@ -651,10 +638,9 @@ export default function Home() {
               Which Montreal parks have the most tennis courts?
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Parc La Fontaine, Parc Jeanne-Mance, and Stade IGA have the
-              largest concentration of bookable courts. La Fontaine and
-              Jeanne-Mance are outdoor public courts; Stade IGA has indoor
-              and outdoor options.
+              Parc La Fontaine, Parc Jeanne-Mance, and Stade IGA have the largest concentration of
+              bookable courts. La Fontaine and Jeanne-Mance are outdoor public courts; Stade IGA has
+              indoor and outdoor options.
             </p>
           </div>
           <div>
@@ -662,10 +648,9 @@ export default function Home() {
               Do I need a Loisirs Montréal account?
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Yes. All bookings are processed on loisirs.montreal.ca and
-              require a free Loisirs Montréal account. Sign in once on the
-              City&apos;s site, then any slot click here goes straight to
-              checkout.
+              Yes. All bookings are processed on loisirs.montreal.ca and require a free Loisirs
+              Montréal account. Sign in once on the City&apos;s site, then any slot click here goes
+              straight to checkout.
             </p>
           </div>
         </div>
@@ -688,19 +673,16 @@ export default function Home() {
 
       <footer className="mt-12 pt-8 border-t border-border text-xs text-muted-foreground space-y-3">
         <p>
-          Availability is refreshed live from loisirs.montreal.ca on every
-          search. Site last updated{" "}
+          Availability is refreshed live from loisirs.montreal.ca on every search. Site last updated{" "}
           <time dateTime="2026-05-07">May 7, 2026</time>.
         </p>
         <p>
-          Clicking a slot opens loisirs.montreal.ca filtered to that exact
-          time. Click the green <span className="font-mono">+</span> next to
-          your row to add it to your cart and book. If you&apos;re not signed
-          in yet, use the Sign in button at the top.
+          Clicking a slot opens loisirs.montreal.ca filtered to that exact time. Click the green{" "}
+          <span className="font-mono">+</span> next to your row to add it to your cart and book. If
+          you&apos;re not signed in yet, use the Sign in button at the top.
         </p>
         <p>
-          Not affiliated with the City of Montreal. All bookings are processed
-          on{" "}
+          Not affiliated with the City of Montreal. All bookings are processed on{" "}
           <a
             href="https://loisirs.montreal.ca/IC3/"
             target="_blank"

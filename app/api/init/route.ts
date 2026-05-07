@@ -10,10 +10,7 @@ export async function GET() {
   });
 
   if (!res.ok) {
-    return NextResponse.json(
-      { error: `IC3 returned ${res.status}` },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: `IC3 returned ${res.status}` }, { status: 502 });
   }
 
   const data = (await res.json()) as InitResponse;

@@ -97,10 +97,7 @@ const ORG_LD = {
   description:
     "Independent tool that finds open tennis courts in Montreal by querying the City's public reservation system.",
   founder: { "@id": PERSON_ID },
-  sameAs: [
-    "https://github.com/KatFishSnake/tennismtl.com",
-    "https://heyandre.so",
-  ],
+  sameAs: ["https://github.com/KatFishSnake/tennismtl.com", "https://heyandre.so"],
 };
 
 const PERSON_LD = {
@@ -116,10 +113,7 @@ const PERSON_LD = {
     "loisirs.montreal.ca booking",
     "Web development",
   ],
-  sameAs: [
-    "https://heyandre.so",
-    "https://github.com/KatFishSnake",
-  ],
+  sameAs: ["https://heyandre.so", "https://github.com/KatFishSnake"],
 };
 
 const WEBAPP_LD = {
@@ -212,16 +206,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${figtree.variable} h-full antialiased font-sans`}
-    >
+    <html lang="en" className={`${figtree.variable} h-full antialiased font-sans`}>
       <body className="min-h-full flex flex-col bg-background text-foreground [padding-top:env(safe-area-inset-top)] [padding-bottom:env(safe-area-inset-bottom)]">
         {children}
-        {STRUCTURED_DATA.map((node, i) => (
+        {STRUCTURED_DATA.map((node) => (
           <script
-            // eslint-disable-next-line react/no-danger
-            key={i}
+            key={node["@type"]}
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
           />
