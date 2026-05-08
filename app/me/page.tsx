@@ -123,9 +123,9 @@ export default function MePage() {
                 logged-in page.
               </p>
               {state.detail && (
-                <p className="mt-3 text-xs text-muted-foreground font-mono break-all">
+                <pre className="mt-3 text-[10px] text-muted-foreground font-mono whitespace-pre-wrap break-all text-left bg-muted/40 rounded p-2">
                   {state.detail}
-                </p>
+                </pre>
               )}
               <div className="mt-5 flex flex-col gap-2">
                 <a

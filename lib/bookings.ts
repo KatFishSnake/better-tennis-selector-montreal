@@ -121,7 +121,14 @@ const BOOKMARKLET_BODY = `(function(){
     return;
   }
   function go(frag){location.href=DEST+frag;throw 0;}
-  function fail(code,detail){go('#err='+code+(detail?'&msg='+encodeURIComponent(String(detail).slice(0,200)):''));}
+  function probe(){
+    try{
+      var ck=document.cookie?document.cookie.split(';').map(function(s){return s.trim().split('=')[0];}).filter(Boolean):[];
+      var ls=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k)ls.push(k);}}catch(_){}
+      return 'ck['+ck.length+']:'+ck.slice(0,6).join(',')+' | ls['+ls.length+']:'+ls.slice(0,6).join(',');
+    }catch(_){return 'probe-fail';}
+  }
+  function fail(code,detail){go('#err='+code+'&msg='+encodeURIComponent((String(detail||'')+' | '+probe()).slice(0,400)));}
   var H={'x-tenant-id':'1','accept':'application/json, text/plain, */*'};
   fetch('/IC3/api/U3000/member/authentication/currentmember/?_='+Date.now(),{headers:H,credentials:'include'})
     .then(function(r){
