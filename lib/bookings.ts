@@ -121,45 +121,57 @@ const BOOKMARKLET_BODY = `(function(){
     return;
   }
   function go(frag){location.href=DEST+frag;throw 0;}
-  function findToken(){
-    var stores=[localStorage,sessionStorage];
+  function findUser(){
+    var stores=[sessionStorage,localStorage];
     for(var si=0;si<stores.length;si++){
       var s=stores[si];
       try{
         for(var i=0;i<s.length;i++){
           var k=s.key(i);if(!k)continue;
           var v=s.getItem(k);if(!v||v.charAt(0)!=='{')continue;
-          try{var o=JSON.parse(v);if(o){
-            if(typeof o.access_token==='string')return{tok:o.access_token,key:k};
-            if(o.tokens&&typeof o.tokens.access_token==='string')return{tok:o.tokens.access_token,key:k};
-            if(o.body&&typeof o.body.access_token==='string')return{tok:o.body.access_token,key:k};
-          }}catch(_){}
+          try{var o=JSON.parse(v);if(o&&(typeof o.access_token==='string'||typeof o.id_token==='string'))return{u:o,key:k};}catch(_){}
         }
       }catch(_){}
     }
     return null;
   }
-  function probe(tokSrc){
+  function userShape(u){if(!u)return '';var keys=[];for(var k in u){if(Object.prototype.hasOwnProperty.call(u,k))keys.push(k);}return keys.slice(0,10).join(',');}
+  function probe(extra){
     try{
       var ck=document.cookie?document.cookie.split(';').map(function(s){return s.trim().split('=')[0];}).filter(Boolean):[];
-      var ls=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k)ls.push(k);}}catch(_){}
-      return 'ck['+ck.length+']:'+ck.slice(0,6).join(',')+' | ls['+ls.length+']:'+ls.slice(0,6).join(',')+' | tok:'+(tokSrc||'none');
+      return 'ck['+ck.length+']:'+ck.slice(0,5).join(',')+' | '+(extra||'');
     }catch(_){return 'probe-fail';}
   }
-  var TOKEN=findToken();
-  function fail(code,detail){go('#err='+code+'&msg='+encodeURIComponent((String(detail||'')+' | '+probe(TOKEN&&TOKEN.key)).slice(0,400)));}
-  var H={'x-tenant-id':'1','accept':'application/json, text/plain, */*'};
-  if(TOKEN&&TOKEN.tok)H['Authorization']='Bearer '+TOKEN.tok;
-  fetch('/IC3/api/U3000/member/authentication/currentmember/?_='+Date.now(),{headers:H,credentials:'include'})
-    .then(function(r){
-      if(r.status===401||r.status===403)fail('auth','member status '+r.status);
-      if(!r.ok)fail('fetch','member HTTP '+r.status);
-      return r.text().then(function(t){
+  var USER=findUser();
+  var TRIED=[];
+  function fail(code,detail){go('#err='+code+'&msg='+encodeURIComponent((String(detail||'')+' | tried:'+TRIED.join('>')+' | userKeys:'+userShape(USER&&USER.u)+' | '+probe()).slice(0,500)));}
+  var BASE_H={'x-tenant-id':'1','accept':'application/json, text/plain, */*'};
+  function callMember(authValue,label){
+    TRIED.push(label);
+    var H=Object.assign({},BASE_H);
+    if(authValue)H['Authorization']='Bearer '+authValue;
+    return fetch('/IC3/api/U3000/member/authentication/currentmember/?_='+Date.now(),{headers:H,credentials:'include'})
+      .then(function(r){return {r:r,H:H};});
+  }
+  var attempts=[];
+  if(USER&&USER.u.access_token)attempts.push({v:USER.u.access_token,l:'access'});
+  if(USER&&USER.u.id_token)attempts.push({v:USER.u.id_token,l:'id'});
+  attempts.push({v:null,l:'cookie'});
+  function tryNext(idx){
+    if(idx>=attempts.length)return fail('auth','all attempts 401');
+    var a=attempts[idx];
+    return callMember(a.v,a.l).then(function(res){
+      if(res.r.status===401||res.r.status===403)return tryNext(idx+1);
+      if(!res.r.ok)fail('fetch','member HTTP '+res.r.status);
+      return res.r.text().then(function(t){
         var d;try{d=JSON.parse(t);}catch(_){fail('auth','member non-JSON: '+t.slice(0,160));}
-        return d;
+        return {d:d,H:res.H};
       });
-    })
-    .then(function(d){
+    });
+  }
+  tryNext(0)
+    .then(function(ctx){
+      var d=ctx.d,winH=ctx.H;
       var id=d&&d.result&&d.result.id;
       if(!id){
         var snippet=JSON.stringify(d).slice(0,160);
@@ -168,7 +180,7 @@ const BOOKMARKLET_BODY = `(function(){
       return fetch('/IC3/api/U3100/saleitem/member/view/'+id+'?_='+Date.now(),{
         method:'POST',
         credentials:'include',
-        headers:Object.assign({'content-type':'application/json;charset=UTF-8'},H),
+        headers:Object.assign({'content-type':'application/json;charset=UTF-8'},winH),
         body:JSON.stringify({isSortOrderAsc:false,limit:50,offset:0,searchString:null,sortColumn:'saleDateTime',lblAccessPackage:'Forfait de passages',lblDropInRegistration:'Inscription libre',lblItemSale:'Item de vente',lblRegistration:'Inscription',lblRegistrationByActivitySession:'Inscription à la séance',lblReservation:'Réservation',lblSubscription:'Adhésion'})
       });
     })
