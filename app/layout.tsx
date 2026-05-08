@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Figtree } from "next/font/google";
 import "./globals.css";
@@ -216,6 +217,7 @@ export default function RootLayout({
             dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
           />
         ))}
+        <Analytics />
       </body>
     </html>
   );
