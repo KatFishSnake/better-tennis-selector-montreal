@@ -121,15 +121,35 @@ const BOOKMARKLET_BODY = `(function(){
     return;
   }
   function go(frag){location.href=DEST+frag;throw 0;}
-  function probe(){
+  function findToken(){
+    var stores=[localStorage,sessionStorage];
+    for(var si=0;si<stores.length;si++){
+      var s=stores[si];
+      try{
+        for(var i=0;i<s.length;i++){
+          var k=s.key(i);if(!k)continue;
+          var v=s.getItem(k);if(!v||v.charAt(0)!=='{')continue;
+          try{var o=JSON.parse(v);if(o){
+            if(typeof o.access_token==='string')return{tok:o.access_token,key:k};
+            if(o.tokens&&typeof o.tokens.access_token==='string')return{tok:o.tokens.access_token,key:k};
+            if(o.body&&typeof o.body.access_token==='string')return{tok:o.body.access_token,key:k};
+          }}catch(_){}
+        }
+      }catch(_){}
+    }
+    return null;
+  }
+  function probe(tokSrc){
     try{
       var ck=document.cookie?document.cookie.split(';').map(function(s){return s.trim().split('=')[0];}).filter(Boolean):[];
       var ls=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k)ls.push(k);}}catch(_){}
-      return 'ck['+ck.length+']:'+ck.slice(0,6).join(',')+' | ls['+ls.length+']:'+ls.slice(0,6).join(',');
+      return 'ck['+ck.length+']:'+ck.slice(0,6).join(',')+' | ls['+ls.length+']:'+ls.slice(0,6).join(',')+' | tok:'+(tokSrc||'none');
     }catch(_){return 'probe-fail';}
   }
-  function fail(code,detail){go('#err='+code+'&msg='+encodeURIComponent((String(detail||'')+' | '+probe()).slice(0,400)));}
+  var TOKEN=findToken();
+  function fail(code,detail){go('#err='+code+'&msg='+encodeURIComponent((String(detail||'')+' | '+probe(TOKEN&&TOKEN.key)).slice(0,400)));}
   var H={'x-tenant-id':'1','accept':'application/json, text/plain, */*'};
+  if(TOKEN&&TOKEN.tok)H['Authorization']='Bearer '+TOKEN.tok;
   fetch('/IC3/api/U3000/member/authentication/currentmember/?_='+Date.now(),{headers:H,credentials:'include'})
     .then(function(r){
       if(r.status===401||r.status===403)fail('auth','member status '+r.status);
