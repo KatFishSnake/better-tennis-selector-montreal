@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { MyBookingsCard } from "@/components/my-bookings-card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { type BookingPayload, bookingTimeKey } from "@/lib/bookings";
 import {
   DEFAULT_SITE_ID,
   dateForIC3,
@@ -119,6 +121,25 @@ export default function Home() {
     facilityTypeIds: string;
     date: string;
   } | null>(null);
+  const [bookings, setBookings] = useState<BookingPayload | null>(null);
+
+  const onBookingsChange = useCallback((p: BookingPayload | null) => setBookings(p), []);
+
+  const bookingTimeKeys = useMemo(() => {
+    if (!bookings) return new Set<string>();
+    const now = Date.now();
+    const out = new Set<string>();
+    for (const b of bookings.items) {
+      const key = bookingTimeKey(b);
+      if (!key) continue;
+      // Only count future bookings as conflicts.
+      const m = b.d.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/);
+      if (!m) continue;
+      const t = new Date(`${m[1]}T${m[2]}:00.000-04:00`).getTime();
+      if (t + 60 * 60 * 1000 > now) out.add(key);
+    }
+    return out;
+  }, [bookings]);
 
   function toMontrealOffset(iso: string): string {
     // Convert UTC ISO (e.g. 2026-05-08T19:00:00.000Z) to "...-04:00" / "...-05:00"
@@ -394,6 +415,10 @@ export default function Home() {
         </CardContent>
       </Card>
 
+      <div className="hidden sm:block">
+        <MyBookingsCard onChange={onBookingsChange} />
+      </div>
+
       <Card className="mb-6 shadow-none">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3 text-base font-semibold">
@@ -582,12 +607,17 @@ export default function Home() {
           {byTime.map((bucket) => {
             const minPrice = Math.min(...bucket.slots.map((s) => s.totalPrice));
             const isPreferred = bucket.preferred > 0;
+            const isConflict = bookingTimeKeys.has(bucketKey(bucket.startIso));
             return (
               <Card
                 key={bucket.startIso}
                 className={
                   "shadow-none transition-colors " +
-                  (isPreferred ? "border-court/40 bg-court/[0.04]" : "")
+                  (isConflict
+                    ? "border-amber-500/40 bg-amber-500/[0.05]"
+                    : isPreferred
+                      ? "border-court/40 bg-court/[0.04]"
+                      : "")
                 }
               >
                 <CardContent className="p-3 sm:p-4">
@@ -605,7 +635,15 @@ export default function Home() {
                         {minPrice > 0 ? ` · from $${minPrice.toFixed(0)}` : ""}
                       </span>
                     </div>
-                    {isPreferred && (
+                    {isConflict && (
+                      <span
+                        title="You already have a reservation at this time"
+                        className="-my-1 -mr-1 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] uppercase tracking-wider text-amber-700 bg-amber-500/10 border border-amber-500/30"
+                      >
+                        already booked
+                      </span>
+                    )}
+                    {!isConflict && isPreferred && (
                       <button
                         type="button"
                         onClick={() => removePreference(bucket.startIso)}
