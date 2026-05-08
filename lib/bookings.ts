@@ -121,17 +121,23 @@ const BOOKMARKLET_BODY = `(function(){
     return;
   }
   function go(frag){location.href=DEST+frag;throw 0;}
-  function chk(r){
-    if(r.status===401||r.status===403)go('#err=auth');
-    if(!r.ok)go('#err=fetch&msg='+encodeURIComponent('HTTP '+r.status));
-    return r.json();
-  }
+  function fail(code,detail){go('#err='+code+(detail?'&msg='+encodeURIComponent(String(detail).slice(0,200)):''));}
   var H={'x-tenant-id':'1','accept':'application/json, text/plain, */*'};
   fetch('/IC3/api/U3000/member/authentication/currentmember/?_='+Date.now(),{headers:H,credentials:'include'})
-    .then(chk)
+    .then(function(r){
+      if(r.status===401||r.status===403)fail('auth','member status '+r.status);
+      if(!r.ok)fail('fetch','member HTTP '+r.status);
+      return r.text().then(function(t){
+        var d;try{d=JSON.parse(t);}catch(_){fail('auth','member non-JSON: '+t.slice(0,160));}
+        return d;
+      });
+    })
     .then(function(d){
       var id=d&&d.result&&d.result.id;
-      if(!id)go('#err=auth');
+      if(!id){
+        var snippet=JSON.stringify(d).slice(0,160);
+        fail('auth','no member id; got '+snippet);
+      }
       return fetch('/IC3/api/U3100/saleitem/member/view/'+id+'?_='+Date.now(),{
         method:'POST',
         credentials:'include',
@@ -139,7 +145,11 @@ const BOOKMARKLET_BODY = `(function(){
         body:JSON.stringify({isSortOrderAsc:false,limit:50,offset:0,searchString:null,sortColumn:'saleDateTime',lblAccessPackage:'Forfait de passages',lblDropInRegistration:'Inscription libre',lblItemSale:'Item de vente',lblRegistration:'Inscription',lblRegistrationByActivitySession:'Inscription à la séance',lblReservation:'Réservation',lblSubscription:'Adhésion'})
       });
     })
-    .then(chk)
+    .then(function(r){
+      if(r.status===401||r.status===403)fail('auth','sale status '+r.status);
+      if(!r.ok)fail('fetch','sale HTTP '+r.status);
+      return r.json();
+    })
     .then(function(d){
       var items=(d&&d.results)||[];
       var slim=items.filter(function(it){return it.saleItemType===2;}).map(function(it){
@@ -153,7 +163,7 @@ const BOOKMARKLET_BODY = `(function(){
     })
     .catch(function(e){
       if(e===0)return;
-      location.href=DEST+'#err=fetch&msg='+encodeURIComponent((e&&e.message)||'Network error');
+      location.href=DEST+'#err=fetch&msg='+encodeURIComponent(((e&&e.message)||'Network error').slice(0,200));
     });
 })();`;
 
