@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -180,6 +180,32 @@ export function MyBookingsCard({
   );
 }
 
+// React 19 blocks `javascript:` URLs in `href` attributes during render. We
+// need the real href on the element so the user can drag it to their bookmarks
+// bar — set it imperatively after mount via `setAttribute`, which bypasses
+// React's attribute-setter guard.
+function BookmarkletAnchor({
+  href,
+  className,
+  children,
+}: {
+  href: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    ref.current?.setAttribute("href", href);
+  }, [href]);
+  return (
+    // biome-ignore lint/a11y/useValidAnchor: anchor is required so the user can drag it to the bookmarks bar; a button can't be bookmarked.
+    // biome-ignore lint/a11y/noStaticElementInteractions: onClick is a click-blocker, the real action is the drag-to-bookmarks-bar gesture.
+    <a ref={ref} draggable="true" onClick={(e) => e.preventDefault()} className={className}>
+      {children}
+    </a>
+  );
+}
+
 function InstallSteps({ href }: { href: string }) {
   return (
     <div className="mt-5 rounded-md border border-border bg-background p-4 text-sm">
@@ -190,14 +216,12 @@ function InstallSteps({ href }: { href: string }) {
         </li>
         <li>
           Drag this button up to your bookmarks bar:{" "}
-          <a
+          <BookmarkletAnchor
             href={href}
-            draggable="true"
-            onClick={(e) => e.preventDefault()}
             className="ml-1 inline-flex items-center rounded-md border border-court/40 bg-court/10 px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-court/20"
           >
             🎾 Sync to Tennis MTL
-          </a>
+          </BookmarkletAnchor>
         </li>
         <li>
           Open{" "}
